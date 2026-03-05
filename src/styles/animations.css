@@ -1,0 +1,49 @@
+/* Custom animations for HackWarz */
+
+@keyframes grain {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-5%, -10%); }
+  20% { transform: translate(-15%, 5%); }
+  30% { transform: translate(7%, -25%); }
+  40% { transform: translate(-5%, 25%); }
+  50% { transform: translate(-15%, 10%); }
+  60% { transform: translate(15%, 0%); }
+  70% { transform: translate(0%, 15%); }
+  80% { transform: translate(3%, 35%); }
+  90% { transform: translate(-10%, 10%); }
+}
+
+.animate-grain {
+  animation: grain 8s steps(10) infinite;
+}
+
+/* Smooth scrollbar styling */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #000000;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #a855f7, #ec4899);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, #9333ea, #db2777);
+}
+
+/* Selection styling */
+::selection {
+  background: rgba(168, 85, 247, 0.3);
+  color: #ffffff;
+}
+
+/* Glow effect utility */
+.glow-text {
+  text-shadow: 0 0 10px rgba(168, 85, 247, 0.5),
+               0 0 20px rgba(168, 85, 247, 0.3),
+               0 0 30px rgba(236, 72, 153, 0.2);
+}

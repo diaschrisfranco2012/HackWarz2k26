@@ -124,7 +124,7 @@ export default function App() {
 
           {/* TIMER SLIDE UP */}
           <motion.div 
-            className="relative z-20 mb-10 scale-[0.85] w-full px-10 flex justify-center filter drop-shadow-[0_0_15px_rgba(168,85,247,0.3)]"
+            className="relative z-20 mb-10 scale-[0.85] w-[90%] mx-auto flex justify-center filter drop-shadow-[0_0_15px_rgba(168,85,247,0.3)]"
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}

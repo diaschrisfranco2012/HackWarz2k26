@@ -149,7 +149,7 @@ export default function App() {
                 </span>
               </button>
             </a>
-            <a href="/HAckwarz_brochure.pdf" download="Hackwarz_2026_brochure.pdf" className='W-full'>
+            <a href="/Hackwarz_brochure.pdf" download="Hackwarz_2026_brochure.pdf" className='W-full'>
             <button className="w-full px-8 py-4 border border-purple-500/50 rounded-xl bg-black/50 backdrop-blur-sm text-purple-300 font-bold text-lg flex items-center justify-center gap-2">
               <Download className="w-5 h-5" />
               Brochure
@@ -221,7 +221,7 @@ export default function App() {
                     </span>
                   </button>
                 </a>
-                <a href="/brochure.pdf" download="Hackwarz_2026_brochure.pdf" className='W-full'>
+                <a href="/Hackwarz_brochure.pdf" download="Hackwarz_2026_brochure.pdf" className='W-full'>
                 <button className="w-auto group relative px-10 py-4 border-2 border-purple-500/50 rounded-xl overflow-hidden transition-all duration-300 hover:scale-105 hover:border-pink-500 pointer-events-auto bg-black/50 backdrop-blur-sm">
                   <div className="absolute inset-0 bg-gradient-to-r from-purple-500/0 to-pink-500/0 group-hover:from-purple-500/10 group-hover:to-pink-500/10 transition-all duration-300" />
                   <span className="relative flex items-center justify-center gap-3 font-bold text-xl text-purple-300 group-hover:text-pink-300 transition-colors tracking-wide">

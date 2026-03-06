@@ -15,15 +15,15 @@ export default function App() {
   const [activeDay, setActiveDay] = useState(1);
   const [activeScheduleCard, setActiveScheduleCard] = useState<number | null>(null);
   
-  // --- NEW: MOBILE DETECTION TO FIX LAG ---
+  // Mobile Detection
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768); // 768px is the standard md breakpoint
+      setIsMobile(window.innerWidth < 768); 
     };
-    checkMobile(); // Check on initial load
-    window.addEventListener('resize', checkMobile); // Update if they resize the window
+    checkMobile(); 
+    window.addEventListener('resize', checkMobile); 
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
@@ -47,7 +47,7 @@ export default function App() {
   
   const scrollIndicatorOpacity = useTransform(scrollYProgress, [0, 0.05], [1, 0]);
 
-  // Data
+  // Date
   const eventDate = new Date('2026-03-12T10:00:00');
 
   const prizes = [
@@ -78,7 +78,6 @@ export default function App() {
   return (
     <div ref={containerRef} className="relative bg-black text-white clip-path-auto">
       
-      {/* Conditionally hide the grain overlay on mobile to save CPU */}
       {!isMobile && (
         <div className="fixed inset-0 pointer-events-none z-50 opacity-[0.03]">
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIj48ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9Ii43NSIgc3RpdGNoVGlsZXM9InN0aXRjaCIgdHlwZT0iZnJhY3RhbE5vaXNlIi8+PGZlQ29sb3JNYXRyaXggdHlwZT0ic2F0dXJhdGUiIHZhbHVlcz0iMCIvPjwvZmlsdGVyPjxwYXRoIGQ9Ik0wIDBoMzAwdjMwMEgweiIgZmlsdGVyPSJ1cmwoI2EpIiBvcGFjaXR5PSIuMDUiLz48L3N2Zz4=')] animate-grain" />
@@ -86,35 +85,62 @@ export default function App() {
       )}
 
       {/* =========================================
-          HERO SECTION: MOBILE (FAST, NO SPLINE)
+          HERO SECTION: MOBILE 
           ========================================= */}
       {isMobile && (
-        <section className="relative min-h-[100svh] w-full bg-black flex flex-col items-center justify-center pt-12 pb-20 px-4 overflow-hidden z-20">
+        <section className="relative min-h-[100svh] w-full bg-black flex flex-col items-center justify-center pt-12 pb-20 px-8 overflow-hidden z-20">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-purple-950/60 via-black to-black z-0 pointer-events-none" />
           
-          <div className="relative z-10 flex items-center justify-center mb-10 mt-8">
+          {/* THE 360 HORIZONTAL FLIP LOGO*/}
+          <motion.div 
+            className="relative z-10 flex items-center justify-center mb-10 mt-8"
+            initial={{ rotateY: -360, scale: 0.5, opacity: 0 }}
+            animate={{ rotateY: 0, scale: 1, opacity: 1 }}
+            transition={{ duration: 2.5, ease: "easeOut" }} 
+          >
             <div className="absolute w-[200px] h-[200px] bg-purple-600/50 rounded-full blur-[70px]" />
             <img 
               src="/hackwarz-logo.png" 
               alt="HackWarz 2026 Official Crest" 
-              className="relative z-10 w-[85vw] max-w-[280px] h-auto object-contain drop-shadow-[0_0_25px_rgba(168,85,247,0.7)] animate-fade-in"
+              className="relative z-10 w-[85vw] max-w-[280px] h-auto object-contain drop-shadow-[0_0_25px_rgba(168,85,247,0.7)]"
             />
-          </div>
+          </motion.div>
 
-          <div className="relative z-20 w-full text-center space-y-3 mb-8">
+          {/* WELCOME TEXT SLIDE UP */}
+          <motion.div 
+            className="relative z-20 w-full text-center space-y-3 mb-8"
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 1.5 }}
+          >
             <h2 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-pink-300 to-purple-400 drop-shadow-[0_0_20px_rgba(168,85,247,0.5)]">
               Welcome to the Arena
             </h2>
             <p className="text-sm text-purple-300/80 tracking-[0.2em] font-bold drop-shadow-md">
               CODE. COMPETE. CONQUER.
             </p>
-          </div>
+          </motion.div>
 
-          <div className="relative z-20 mb-10 scale-[0.85] w-full flex justify-center filter drop-shadow-[0_0_15px_rgba(168,85,247,0.3)]">
+          {/* TIMER SLIDE UP */}
+          <motion.div 
+            className="relative z-20 mb-10 scale-[0.85] w-full flex justify-center filter drop-shadow-[0_0_15px_rgba(168,85,247,0.3)]"
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 1.8 }}
+          >
             <CountdownTimer targetDate={eventDate} />
-          </div>
+          </motion.div>
 
-          <div className="relative z-20 flex flex-col gap-4 w-full max-w-sm px-2">
+          {/* BUTTONS SLIDE UP */}
+          <motion.div 
+            className="relative z-20 flex flex-col gap-4 w-full max-w-sm px-2"
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 2.1 }}
+          >
             <a href="https://forms.gle/1Wni9ez4CtD32DU16" target="_blank" rel="noopener noreferrer" className="w-full">
               <button className="w-full group relative px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl shadow-[0_0_30px_rgba(168,85,247,0.4)]">
                 <span className="relative flex items-center justify-center gap-2 font-bold text-lg text-white tracking-wide">
@@ -127,13 +153,13 @@ export default function App() {
               <Download className="w-5 h-5" />
               Brochure
             </button>
-          </div>
+          </motion.div>
         </section>
       )}
 
 
       {/* =========================================
-          HERO SECTION: DESKTOP (400VH SPLINE)
+          HERO SECTION: DESKTOP
           ========================================= */}
       {!isMobile && (
         <section ref={heroRef} className="relative h-[400vh] w-full bg-black">
@@ -220,7 +246,7 @@ export default function App() {
         </section>
       )}
 
-      {/* THE REST OF THE WEBSITE (Shared between Mobile & Desktop) */}
+      {/* Other section */}
       <section className="relative py-24 md:py-32 px-4 overflow-hidden z-40 bg-black border-t border-purple-900/50 shadow-[0_-30px_60px_rgba(0,0,0,1)]">
         <div className="absolute inset-0 bg-gradient-to-b from-purple-900/10 to-black pointer-events-none" />
         <div className="relative max-w-6xl mx-auto">

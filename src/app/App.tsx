@@ -59,8 +59,7 @@ export default function App() {
     { time: '10:00 AM', event: 'Inaugural Ceremony & Theme Disclosure', description: 'Start the Digital Arena with the opening ceremony, introductions, and the official reveal of the hackathon theme.' },
     { time: '11:00 AM', event: 'Hackathon Begins', description: 'The arena opens! Teams start brainstorming, planning, and building their solutions.' },
     { time: '12:00 PM', event: 'Mandatory First Commit', description: 'Teams must make their first official submission to mark the start of their project development.' },
-    { time: '04:00 PM', event: 'Checkpoint 1', description: 'A quick progress check with mentors to review ideas, solve blockers, and refine your direction.' },
-    { time: '09:00 PM', event: 'Checkpoint 2', description: 'Another progress review where mentors provide guidance and help you prepare for the final stretch.' },
+    { time: '02:00 PM onwards', event: 'Checkpoint', description: 'Teams will have scheduled progress check-ins with mentors for feedback, guidance, and support as development continues throughout the hackathon.' },
   ];
 
   const scheduleDay2 = [

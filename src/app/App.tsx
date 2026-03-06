@@ -88,7 +88,7 @@ export default function App() {
           HERO SECTION: MOBILE 
           ========================================= */}
       {isMobile && (
-        <section className="relative min-h-[100svh] w-full bg-black flex flex-col items-center justify-center pt-12 pb-20 px-8 overflow-hidden z-20">
+        <section className="relative min-h-[100svh] w-full bg-black flex flex-col items-center justify-center pt-12 pb-20 px-4 overflow-hidden z-20">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-purple-950/60 via-black to-black z-0 pointer-events-none" />
           
           {/* THE 360 HORIZONTAL FLIP LOGO*/}
@@ -124,7 +124,7 @@ export default function App() {
 
           {/* TIMER SLIDE UP */}
           <motion.div 
-            className="relative z-20 mb-10 scale-[0.85] w-full flex justify-center filter drop-shadow-[0_0_15px_rgba(168,85,247,0.3)]"
+            className="relative z-20 mb-10 scale-[0.85] w-full px-10 flex justify-center filter drop-shadow-[0_0_15px_rgba(168,85,247,0.3)]"
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}

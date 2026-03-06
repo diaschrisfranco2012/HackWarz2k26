@@ -149,7 +149,7 @@ export default function App() {
                 </span>
               </button>
             </a>
-            <a href="/brochure.pdf" download="Hackwarz_2026_brochure.pdf" className='W-full'>
+            <a href="/HAckwarz_brochure.pdf" download="Hackwarz_2026_brochure.pdf" className='W-full'>
             <button className="w-full px-8 py-4 border border-purple-500/50 rounded-xl bg-black/50 backdrop-blur-sm text-purple-300 font-bold text-lg flex items-center justify-center gap-2">
               <Download className="w-5 h-5" />
               Brochure

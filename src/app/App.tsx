@@ -14,13 +14,25 @@ export default function App() {
   
   const [activeDay, setActiveDay] = useState(1);
   const [activeScheduleCard, setActiveScheduleCard] = useState<number | null>(null);
+  
+  // --- NEW: MOBILE DETECTION TO FIX LAG ---
+  const [isMobile, setIsMobile] = useState(false);
 
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768); // 768px is the standard md breakpoint
+    };
+    checkMobile(); // Check on initial load
+    window.addEventListener('resize', checkMobile); // Update if they resize the window
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Desktop Scroll Animation Timeline
   const { scrollYProgress } = useScroll({
     target: heroRef,
     offset: ["start start", "end end"]
   });
 
-  // Scroll Animation Timeline
   const opacity3D = useTransform(scrollYProgress, [0.75, 0.85], [1, 0]);
   const bgOverlayOpacity = useTransform(scrollYProgress, [0.75, 0.85], [0, 1]);
   
@@ -46,7 +58,7 @@ export default function App() {
   const scheduleDay1 = [
     { time: '10:00 AM', event: 'Inaugural Ceremony & Theme Disclosure', description: 'Start the Digital Arena with the opening ceremony, introductions, and the official reveal of the hackathon theme.' },
     { time: '11:00 AM', event: 'Hackathon Begins', description: 'The arena opens! Teams start brainstorming, planning, and building their solutions.' },
-    { time: '12:00 AM', event: 'Mandatory First Commit', description: 'Teams must make their first official submission to mark the start of their project development.' },
+    { time: '12:00 PM', event: 'Mandatory First Commit', description: 'Teams must make their first official submission to mark the start of their project development.' },
     { time: '04:00 PM', event: 'Checkpoint 1', description: 'A quick progress check with mentors to review ideas, solve blockers, and refine your direction.' },
     { time: '09:00 PM', event: 'Checkpoint 2', description: 'Another progress review where mentors provide guidance and help you prepare for the final stretch.' },
   ];
@@ -65,93 +77,150 @@ export default function App() {
 
   return (
     <div ref={containerRef} className="relative bg-black text-white clip-path-auto">
-      <div className="fixed inset-0 pointer-events-none z-50 opacity-[0.03]">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIj48ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9Ii43NSIgc3RpdGNoVGlsZXM9InN0aXRjaCIgdHlwZT0iZnJhY3RhbE5vaXNlIi8+PGZlQ29sb3JNYXRyaXggdHlwZT0ic2F0dXJhdGUiIHZhbHVlcz0iMCIvPjwvZmlsdGVyPjxwYXRoIGQ9Ik0wIDBoMzAwdjMwMEgweiIgZmlsdGVyPSJ1cmwoI2EpIiBvcGFjaXR5PSIuMDUiLz48L3N2Zz4=')] animate-grain" />
-      </div>
+      
+      {/* Conditionally hide the grain overlay on mobile to save CPU */}
+      {!isMobile && (
+        <div className="fixed inset-0 pointer-events-none z-50 opacity-[0.03]">
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIj48ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9Ii43NSIgc3RpdGNoVGlsZXM9InN0aXRjaCIgdHlwZT0iZnJhY3RhbE5vaXNlIi8+PGZlQ29sb3JNYXRyaXggdHlwZT0ic2F0dXJhdGUiIHZhbHVlcz0iMCIvPjwvZmlsdGVyPjxwYXRoIGQ9Ik0wIDBoMzAwdjMwMEgweiIgZmlsdGVyPSJ1cmwoI2EpIiBvcGFjaXR5PSIuMDUiLz48L3N2Zz4=')] animate-grain" />
+        </div>
+      )}
 
-      <section ref={heroRef} className="relative h-[400vh] w-full bg-black">
-        <div className="sticky top-0 h-[100svh] w-full overflow-hidden flex flex-col items-center justify-center">
+      {/* =========================================
+          HERO SECTION: MOBILE (FAST, NO SPLINE)
+          ========================================= */}
+      {isMobile && (
+        <section className="relative min-h-[100svh] w-full bg-black flex flex-col items-center justify-center pt-12 pb-20 px-4 overflow-hidden z-20">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-purple-950/60 via-black to-black z-0 pointer-events-none" />
           
-          <motion.div 
-            className="absolute inset-0 w-full h-full z-0 pointer-events-none"
-            style={{ opacity: opacity3D }}
-          >
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-purple-950/20 to-black z-10 pointer-events-none" />
-            <Spline scene="https://prod.spline.design/wBr5Q2bC0Qtlzb1q/scene.splinecode" />
-          </motion.div>
-
-          <motion.div 
-            className="absolute inset-0 z-0 pointer-events-none"
-            style={{ opacity: bgOverlayOpacity }}
-          >
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-purple-900/50 via-black to-black" />
-          </motion.div>
-
-          <motion.div 
-            className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none"
-            style={{ opacity: logoOpacity, scale: logoScale, y: logoY }}
-          >
-            <div className="absolute w-[250px] md:w-[350px] h-[250px] md:h-[350px] bg-purple-600/40 rounded-full blur-[80px] md:blur-[100px]" />
+          <div className="relative z-10 flex items-center justify-center mb-10 mt-8">
+            <div className="absolute w-[200px] h-[200px] bg-purple-600/50 rounded-full blur-[70px]" />
             <img 
               src="/hackwarz-logo.png" 
               alt="HackWarz 2026 Official Crest" 
-              className="relative z-10 w-[80vw] max-w-[280px] md:max-w-[350px] h-auto object-contain drop-shadow-[0_0_30px_rgba(168,85,247,0.8)]"
+              className="relative z-10 w-[85vw] max-w-[280px] h-auto object-contain drop-shadow-[0_0_25px_rgba(168,85,247,0.7)] animate-fade-in"
             />
-          </motion.div>
+          </div>
 
-          <motion.div 
-            className="absolute inset-0 flex flex-col items-center justify-center pt-[55vh] md:pt-[45vh] px-4 z-20 pointer-events-auto w-full max-w-4xl mx-auto"
-            style={{ opacity: ctaOpacity, scale: ctaScale, y: ctaY, filter: ctaFilter }}
-          >
-            <div className="text-center space-y-2 mb-4 md:mb-6">
-              <h2 className="text-3xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-pink-300 to-purple-400 drop-shadow-[0_0_30px_rgba(168,85,247,0.5)]">
-                Welcome to the Arena
-              </h2>
-              <p className="text-sm md:text-xl text-purple-300/80 tracking-[0.2em] font-bold drop-shadow-md">
-                CODE. COMPETE. CONQUER.
-              </p>
-            </div>
+          <div className="relative z-20 w-full text-center space-y-3 mb-8">
+            <h2 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-pink-300 to-purple-400 drop-shadow-[0_0_20px_rgba(168,85,247,0.5)]">
+              Welcome to the Arena
+            </h2>
+            <p className="text-sm text-purple-300/80 tracking-[0.2em] font-bold drop-shadow-md">
+              CODE. COMPETE. CONQUER.
+            </p>
+          </div>
 
-            <div className="mb-6 md:mb-8 scale-75 md:scale-100 filter drop-shadow-[0_0_20px_rgba(168,85,247,0.3)] w-full flex justify-center">
-              <CountdownTimer targetDate={eventDate} />
-            </div>
+          <div className="relative z-20 mb-10 scale-[0.85] w-full flex justify-center filter drop-shadow-[0_0_15px_rgba(168,85,247,0.3)]">
+            <CountdownTimer targetDate={eventDate} />
+          </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto px-4 sm:px-0">
-              <a href="https://forms.gle/1Wni9ez4CtD32DU16" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
-                <button className="w-full group relative px-8 md:px-10 py-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl overflow-hidden transition-all duration-300 hover:scale-105 pointer-events-auto shadow-[0_0_40px_rgba(168,85,247,0.4)] hover:shadow-[0_0_60px_rgba(168,85,247,0.6)]">
-                  <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-pink-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <span className="relative flex items-center justify-center gap-2 font-bold text-lg md:text-xl text-white tracking-wide">
-                    Register Now
-                    <ChevronRight className="w-5 h-5 md:w-6 md:h-6 group-hover:translate-x-1 transition-transform" />
-                  </span>
-                </button>
-              </a>
-              <button className="w-full sm:w-auto group relative px-8 md:px-10 py-4 border-2 border-purple-500/50 rounded-xl overflow-hidden transition-all duration-300 hover:scale-105 hover:border-pink-500 pointer-events-auto bg-black/50 backdrop-blur-sm">
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-500/0 to-pink-500/0 group-hover:from-purple-500/10 group-hover:to-pink-500/10 transition-all duration-300" />
-                <span className="relative flex items-center justify-center gap-2 md:gap-3 font-bold text-lg md:text-xl text-purple-300 group-hover:text-pink-300 transition-colors tracking-wide">
-                  <Download className="w-5 h-5 md:w-6 md:h-6" />
-                  Brochure
+          <div className="relative z-20 flex flex-col gap-4 w-full max-w-sm px-2">
+            <a href="https://forms.gle/1Wni9ez4CtD32DU16" target="_blank" rel="noopener noreferrer" className="w-full">
+              <button className="w-full group relative px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl shadow-[0_0_30px_rgba(168,85,247,0.4)]">
+                <span className="relative flex items-center justify-center gap-2 font-bold text-lg text-white tracking-wide">
+                  Register Now
+                  <ChevronRight className="w-5 h-5" />
                 </span>
               </button>
-            </div>
-          </motion.div>
+            </a>
+            <button className="w-full px-8 py-4 border border-purple-500/50 rounded-xl bg-black/50 backdrop-blur-sm text-purple-300 font-bold text-lg flex items-center justify-center gap-2">
+              <Download className="w-5 h-5" />
+              Brochure
+            </button>
+          </div>
+        </section>
+      )}
 
-          <motion.div
-            className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 pointer-events-none"
-            style={{ opacity: scrollIndicatorOpacity }}
-            animate={{ y: [0, 10, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-          >
-            <div className="flex flex-col items-center gap-2 md:gap-3">
-              <span className="text-purple-400/80 text-xs md:text-sm tracking-[0.3em] font-bold uppercase">Scroll to Enter</span>
-              <div className="w-5 h-8 md:w-6 md:h-10 border-2 border-purple-500/50 rounded-full flex items-start justify-center p-1.5 md:p-2">
-                <div className="w-1 h-2 md:w-1.5 md:h-2.5 bg-purple-500 rounded-full" />
+
+      {/* =========================================
+          HERO SECTION: DESKTOP (400VH SPLINE)
+          ========================================= */}
+      {!isMobile && (
+        <section ref={heroRef} className="relative h-[400vh] w-full bg-black">
+          <div className="sticky top-0 h-[100svh] w-full overflow-hidden flex flex-col items-center justify-center">
+            
+            <motion.div 
+              className="absolute inset-0 w-full h-full z-0 pointer-events-none"
+              style={{ opacity: opacity3D }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-purple-950/20 to-black z-10 pointer-events-none" />
+              <Spline scene="https://prod.spline.design/wBr5Q2bC0Qtlzb1q/scene.splinecode" />
+            </motion.div>
+
+            <motion.div 
+              className="absolute inset-0 z-0 pointer-events-none"
+              style={{ opacity: bgOverlayOpacity }}
+            >
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-purple-900/50 via-black to-black" />
+            </motion.div>
+
+            <motion.div 
+              className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none"
+              style={{ opacity: logoOpacity, scale: logoScale, y: logoY }}
+            >
+              <div className="absolute w-[350px] h-[350px] bg-purple-600/40 rounded-full blur-[100px]" />
+              <img 
+                src="/hackwarz-logo.png" 
+                alt="HackWarz 2026 Official Crest" 
+                className="relative z-10 w-[80vw] max-w-[350px] h-auto object-contain drop-shadow-[0_0_30px_rgba(168,85,247,0.8)]"
+              />
+            </motion.div>
+
+            <motion.div 
+              className="absolute inset-0 flex flex-col items-center justify-center pt-[45vh] px-4 z-20 pointer-events-auto w-full max-w-4xl mx-auto"
+              style={{ opacity: ctaOpacity, scale: ctaScale, y: ctaY, filter: ctaFilter }}
+            >
+              <div className="text-center space-y-2 mb-6">
+                <h2 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-pink-300 to-purple-400 drop-shadow-[0_0_30px_rgba(168,85,247,0.5)]">
+                  Welcome to the Arena
+                </h2>
+                <p className="text-xl text-purple-300/80 tracking-[0.2em] font-bold drop-shadow-md">
+                  CODE. COMPETE. CONQUER.
+                </p>
               </div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
 
+              <div className="mb-8 filter drop-shadow-[0_0_20px_rgba(168,85,247,0.3)] w-full flex justify-center">
+                <CountdownTimer targetDate={eventDate} />
+              </div>
+
+              <div className="flex flex-row gap-4 w-auto px-0">
+                <a href="https://forms.gle/1Wni9ez4CtD32DU16" target="_blank" rel="noopener noreferrer" className="w-auto">
+                  <button className="w-full group relative px-10 py-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl overflow-hidden transition-all duration-300 hover:scale-105 pointer-events-auto shadow-[0_0_40px_rgba(168,85,247,0.4)] hover:shadow-[0_0_60px_rgba(168,85,247,0.6)]">
+                    <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-pink-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <span className="relative flex items-center justify-center gap-2 font-bold text-xl text-white tracking-wide">
+                      Register Now
+                      <ChevronRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                    </span>
+                  </button>
+                </a>
+                <button className="w-auto group relative px-10 py-4 border-2 border-purple-500/50 rounded-xl overflow-hidden transition-all duration-300 hover:scale-105 hover:border-pink-500 pointer-events-auto bg-black/50 backdrop-blur-sm">
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-500/0 to-pink-500/0 group-hover:from-purple-500/10 group-hover:to-pink-500/10 transition-all duration-300" />
+                  <span className="relative flex items-center justify-center gap-3 font-bold text-xl text-purple-300 group-hover:text-pink-300 transition-colors tracking-wide">
+                    <Download className="w-6 h-6" />
+                    Brochure
+                  </span>
+                </button>
+              </div>
+            </motion.div>
+
+            <motion.div
+              className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 pointer-events-none"
+              style={{ opacity: scrollIndicatorOpacity }}
+              animate={{ y: [0, 10, 0] }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <div className="flex flex-col items-center gap-3">
+                <span className="text-purple-400/80 text-sm tracking-[0.3em] font-bold uppercase">Scroll to Enter</span>
+                <div className="w-6 h-10 border-2 border-purple-500/50 rounded-full flex items-start justify-center p-2">
+                  <div className="w-1.5 h-2.5 bg-purple-500 rounded-full" />
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </section>
+      )}
+
+      {/* THE REST OF THE WEBSITE (Shared between Mobile & Desktop) */}
       <section className="relative py-24 md:py-32 px-4 overflow-hidden z-40 bg-black border-t border-purple-900/50 shadow-[0_-30px_60px_rgba(0,0,0,1)]">
         <div className="absolute inset-0 bg-gradient-to-b from-purple-900/10 to-black pointer-events-none" />
         <div className="relative max-w-6xl mx-auto">

@@ -362,7 +362,7 @@ export default function Results() {
 
           {displayState.revealRunnerUp && (
             <div className="order-3 lg:order-3">
-              <RevealCard title="1st Runner Up" name={displayState.runnerUpName} icon={Award} colorClass="from-purple-400 to-pink-600" glowClass="text-pink-400" delay={0.5} />
+              <RevealCard title="Runner Up" name={displayState.runnerUpName} icon={Award} colorClass="from-purple-400 to-pink-600" glowClass="text-pink-400" delay={0.5} />
             </div>
           )}
         </div>

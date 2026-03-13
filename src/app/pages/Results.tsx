@@ -6,7 +6,7 @@ import Papa from 'papaparse';
 import { db, auth } from '../../firebase';
 import { doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
 import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
-import { Trophy, Users, Award, Zap, ShieldAlert, CheckCircle2 } from 'lucide-react';
+import { Trophy, Users, Award, Zap, ShieldAlert, CheckCircle2, Lock } from 'lucide-react';
 
 export default function Results() {
   const [windowSize, setWindowSize] = useState({ width: window.innerWidth, height: window.innerHeight });
@@ -15,6 +15,7 @@ export default function Results() {
     revealPeersAward: false,
     revealRunnerUp: false,
     revealWinner: false,
+    teamLeadersOnly: false, // NEW: Team Leaders Only Mode
     winnerName: '',
     runnerUpName: '',
     peersAwardName: '',
@@ -23,9 +24,9 @@ export default function Results() {
   const [user, setUser] = useState(auth.currentUser);
   const [hasVoted, setHasVoted] = useState(false);
   
-  // Dynamic Registry States from CSV
+  // Dynamic Registry States from CSV (Now includes isLeader flag)
   const [participatingTeams, setParticipatingTeams] = useState<string[]>([]);
-  const [participantRegistry, setParticipantRegistry] = useState<{email: string, name: string, team: string}[]>([]);
+  const [participantRegistry, setParticipantRegistry] = useState<{email: string, name: string, team: string, isLeader: boolean}[]>([]);
 
   // Voting Form State
   const [voterEmail, setVoterEmail] = useState('');
@@ -34,6 +35,7 @@ export default function Results() {
   const [votedForTeam, setVotedForTeam] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [isEmailVerified, setIsEmailVerified] = useState(false);
+  const [isAuthorizedLeader, setIsAuthorizedLeader] = useState(true);
 
   // Handle Window Resize for Confetti
   useEffect(() => {
@@ -55,24 +57,31 @@ export default function Results() {
             const teams = new Set<string>();
 
             results.data.forEach((row: any) => {
-              // Safely find the Team Name column regardless of weird spaces
-              const teamKey = Object.keys(row).find(k => k.includes('Team Name'));
-              const teamName = teamKey ? row[teamKey]?.trim() : '';
-              if (!teamName) return;
+              const teamKey = Object.keys(row).find(k => k?.includes('Team Name'));
+              const teamName = teamKey && row[teamKey] ? String(row[teamKey]).trim() : '';
               
+              if (!teamName) return;
               teams.add(teamName);
 
-              // Helper function to extract each of the 3 members safely
               const addMember = (num: number) => {
-                const nameKey = Object.keys(row).find(k => k.includes(`Team Member ${num}`) && k.includes('Name'));
-                const emailKey = Object.keys(row).find(k => k.includes(`Team Member ${num}`) && k.includes('Email'));
+                const nameKey = Object.keys(row).find(k => k?.includes(`Team Member ${num}`) && k?.includes('Name'));
+                const emailKey = Object.keys(row).find(k => k?.includes(`Team Member ${num}`) && k?.includes('Email'));
 
-                if (nameKey && emailKey && row[emailKey]) {
-                  registry.push({
-                    name: row[nameKey].trim(),
-                    email: row[emailKey].trim().toLowerCase(),
-                    team: teamName
-                  });
+                const rawName = nameKey ? row[nameKey] : undefined;
+                const rawEmail = emailKey ? row[emailKey] : undefined;
+
+                if (rawName && rawEmail && typeof rawName === 'string' && typeof rawEmail === 'string') {
+                  const cleanEmail = rawEmail.trim().toLowerCase();
+                  const cleanName = rawName.trim();
+
+                  if (cleanEmail !== '' && cleanName !== '') {
+                    registry.push({ 
+                      name: cleanName, 
+                      email: cleanEmail, 
+                      team: teamName,
+                      isLeader: num === 1 // Identifies Team Member 1
+                    });
+                  }
                 }
               };
 
@@ -97,22 +106,22 @@ export default function Results() {
     return () => unsub();
   }, []);
 
-  // 3. Listen to Auth
+  // 3. Listen to Auth (Enforces 1 vote per email)
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
         setVoterEmail(currentUser.email || '');
         const voteDoc = await getDoc(doc(db, 'votes', currentUser.email || 'unknown'));
-        if (voteDoc.exists()) setHasVoted(true);
+        if (voteDoc.exists()) setHasVoted(true); // Locks form instantly if they already voted
       }
     });
     return () => unsubscribe();
   }, []);
 
-  // 4. Auto-fill Listener! Watches the email input against the CSV Registry
+  // 4. Auto-fill Listener & Leader Checker
   useEffect(() => {
-    if (participantRegistry.length === 0) return; // Wait until CSV loads
+    if (participantRegistry.length === 0) return;
 
     const matchedUser = participantRegistry.find(
       p => p.email === voterEmail.toLowerCase().trim()
@@ -122,13 +131,22 @@ export default function Results() {
       setVoterName(matchedUser.name);
       setMyTeam(matchedUser.team);
       setIsEmailVerified(true);
-      setErrorMsg(''); // Clear errors if they fixed their email
+      
+      // Check if Leader Mode is ON and they are NOT the leader
+      if (displayState.teamLeadersOnly && !matchedUser.isLeader) {
+        setIsAuthorizedLeader(false);
+        setErrorMsg("Only Team Leaders are authorized to vote in this mode.");
+      } else {
+        setIsAuthorizedLeader(true);
+        setErrorMsg('');
+      }
     } else {
       setVoterName('');
       setMyTeam('');
       setIsEmailVerified(false);
+      setIsAuthorizedLeader(false);
     }
-  }, [voterEmail, participantRegistry]);
+  }, [voterEmail, participantRegistry, displayState.teamLeadersOnly]);
 
   const handleLogin = async () => {
     const provider = new GoogleAuthProvider();
@@ -138,6 +156,11 @@ export default function Results() {
   const handleVote = async () => {
     if (!isEmailVerified) {
       setErrorMsg("Access Denied: Email not found in the official registry.");
+      return;
+    }
+
+    if (displayState.teamLeadersOnly && !isAuthorizedLeader) {
+      setErrorMsg("Only Team Leaders can cast the vote.");
       return;
     }
 
@@ -207,15 +230,11 @@ export default function Results() {
           transition={{ duration: 2.5, ease: "easeOut" }} 
         >
           <div className="absolute w-[150px] h-[150px] bg-purple-600/30 rounded-full blur-[60px]" />
-          <img 
-            src="/hackwarz-logo.png" 
-            alt="HackWarz Logo" 
-            className="relative z-10 w-[40vw] max-w-[180px] h-auto object-contain drop-shadow-[0_0_25px_rgba(168,85,247,0.7)]"
-          />
+          <img src="/hackwarz-logo.png" alt="HackWarz Logo" className="relative z-10 w-[40vw] max-w-[180px] h-auto object-contain drop-shadow-[0_0_25px_rgba(168,85,247,0.7)]" />
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">
-          <h1 className="text-4xl md:text-6xl font-black mb-4 glitch-text uppercase tracking-tighter" data-text="">
+          <h1 className="text-4xl md:text-6xl font-black mb-4 glitch-text uppercase tracking-tighter" data-text="Hackwarz 2k26 results">
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-500 to-purple-500">
               RESULTS ARENA
             </span>
@@ -240,8 +259,12 @@ export default function Results() {
               className="w-full max-w-md bg-neutral-900/80 backdrop-blur-xl border border-purple-500/30 p-6 md:p-8 rounded-3xl shadow-[0_0_40px_rgba(168,85,247,0.1)] mb-16 text-center"
             >
               <Zap className="w-10 h-10 text-pink-400 mx-auto mb-4" />
-              <h2 className="text-xl md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 mb-2 uppercase">Peers Icon Voting</h2>
-              <p className="text-gray-400 mb-6 text-xs md:text-sm">Vote for the team that blew your mind. (You cannot vote for your own team).</p>
+              <h2 className="text-xl md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 mb-1 uppercase">Peers Icon Voting</h2>
+              
+              {/* DYNAMIC SUBTITLE BASED ON VOTING MODE */}
+              <p className="text-purple-300 font-bold mb-4 text-xs tracking-widest uppercase">
+                {displayState.teamLeadersOnly ? '🚨 Team Leaders Only 🚨' : '1 Vote Per Person'}
+              </p>
 
               {!user ? (
                 <button onClick={handleLogin} className="w-full py-4 bg-white text-black font-bold rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center gap-3">
@@ -255,7 +278,6 @@ export default function Results() {
               ) : (
                 <div className="space-y-4 text-left">
                   
-                  {/* DYNAMIC EMAIL INPUT */}
                   <div className="relative">
                     <label className="text-xs font-bold text-purple-400 uppercase tracking-wider ml-1">Registered Email</label>
                     <input 
@@ -263,55 +285,49 @@ export default function Results() {
                       placeholder="Enter registered email"
                       value={voterEmail} 
                       onChange={(e) => setVoterEmail(e.target.value)} 
-                      className={`w-full mt-1 bg-black border ${isEmailVerified ? 'border-green-500' : 'border-neutral-700'} rounded-xl p-3 pr-10 text-white focus:outline-none transition-colors`} 
+                      className={`w-full mt-1 bg-black border ${isEmailVerified ? (displayState.teamLeadersOnly && !isAuthorizedLeader ? 'border-red-500' : 'border-green-500') : 'border-neutral-700'} rounded-xl p-3 pr-10 text-white focus:outline-none transition-colors`} 
                     />
-                    {isEmailVerified && (
-                      <CheckCircle2 className="absolute right-3 top-9 w-5 h-5 text-green-500" />
-                    )}
+                    {isEmailVerified && isAuthorizedLeader && <CheckCircle2 className="absolute right-3 top-9 w-5 h-5 text-green-500" />}
                   </div>
 
-                  {/* AUTO-FILLED NAME */}
                   <div>
                     <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Your Full Name</label>
-                    <input 
-                      type="text" 
-                      value={voterName} 
-                      readOnly
-                      placeholder="Auto-filled from registry"
-                      className="w-full mt-1 bg-neutral-900 border border-neutral-800 rounded-xl p-3 text-gray-400 cursor-not-allowed"
-                    />
+                    <input type="text" value={voterName} readOnly placeholder="Auto-filled from registry" className="w-full mt-1 bg-neutral-900 border border-neutral-800 rounded-xl p-3 text-gray-400 cursor-not-allowed" />
                   </div>
 
-                  {/* AUTO-FILLED TEAM */}
                   <div>
                     <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Your Team</label>
-                    <input 
-                      type="text" 
-                      value={myTeam} 
-                      readOnly
-                      placeholder="Auto-filled from registry"
-                      className="w-full mt-1 bg-neutral-900 border border-neutral-800 rounded-xl p-3 text-gray-400 cursor-not-allowed"
-                    />
+                    <input type="text" value={myTeam} readOnly placeholder="Auto-filled from registry" className="w-full mt-1 bg-neutral-900 border border-neutral-800 rounded-xl p-3 text-gray-400 cursor-not-allowed" />
                   </div>
 
-                  {/* DYNAMIC TEAM VOTE SELECTION */}
-                  <div className={isEmailVerified ? 'opacity-100' : 'opacity-50 pointer-events-none transition-opacity'}>
-                    <label className="text-xs font-bold text-pink-400 uppercase tracking-wider ml-1">Team You Are Voting For</label>
-                    <select value={votedForTeam} onChange={(e) => setVotedForTeam(e.target.value)} className="w-full mt-1 bg-black border border-neutral-700 rounded-xl p-3 text-white focus:border-pink-500 outline-none">
-                      <option value="">Select a team to vote for...</option>
-                      {participatingTeams.map(team => <option key={`vote-${team}`} value={team}>{team}</option>)}
-                    </select>
-                  </div>
+                  {/* LEADER LOCKOUT WARNING */}
+                  {displayState.teamLeadersOnly && isEmailVerified && !isAuthorizedLeader ? (
+                    <div className="p-4 mt-4 bg-red-500/10 border border-red-500/50 rounded-xl text-red-500 flex items-start gap-3 text-sm">
+                      <Lock className="w-5 h-5 mt-0.5 flex-shrink-0" />
+                      <p><strong>Locked:</strong> You are not registered as the Team Leader. Only Member 1 can cast the vote.</p>
+                    </div>
+                  ) : (
+                    <div className={isEmailVerified ? 'opacity-100' : 'opacity-50 pointer-events-none transition-opacity'}>
+                      <label className="text-xs font-bold text-pink-400 uppercase tracking-wider ml-1">Team You Are Voting For</label>
+                      <select value={votedForTeam} onChange={(e) => setVotedForTeam(e.target.value)} className="w-full mt-1 bg-black border border-neutral-700 rounded-xl p-3 text-white focus:border-pink-500 outline-none">
+                        <option value="">Select a team to vote for...</option>
+                        {participatingTeams.map(team => <option key={`vote-${team}`} value={team}>{team}</option>)}
+                      </select>
+                    </div>
+                  )}
 
                   {errorMsg && <p className="text-red-500 text-sm font-bold text-center">{errorMsg}</p>}
 
-                  <button 
-                    onClick={handleVote}
-                    disabled={!isEmailVerified}
-                    className="w-full mt-2 py-4 bg-gradient-to-r from-purple-600 to-pink-600 font-bold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] transition-transform shadow-[0_0_20px_rgba(236,72,153,0.3)] text-white uppercase tracking-wider"
-                  >
-                    Submit Official Vote
-                  </button>
+                  {/* HIDE BUTTON IF NOT AUTHORIZED TO VOTE */}
+                  {(!displayState.teamLeadersOnly || isAuthorizedLeader) && (
+                    <button 
+                      onClick={handleVote}
+                      disabled={!isEmailVerified}
+                      className="w-full mt-2 py-4 bg-gradient-to-r from-purple-600 to-pink-600 font-bold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] transition-transform shadow-[0_0_20px_rgba(236,72,153,0.3)] text-white uppercase tracking-wider"
+                    >
+                      Submit Official Vote
+                    </button>
+                  )}
                 </div>
               )}
             </motion.div>
@@ -346,7 +362,7 @@ export default function Results() {
 
           {displayState.revealRunnerUp && (
             <div className="order-3 lg:order-3">
-              <RevealCard title="Runner Up" name={displayState.runnerUpName} icon={Award} colorClass="from-purple-400 to-pink-600" glowClass="text-pink-400" delay={0.5} />
+              <RevealCard title="1st Runner Up" name={displayState.runnerUpName} icon={Award} colorClass="from-purple-400 to-pink-600" glowClass="text-pink-400" delay={0.5} />
             </div>
           )}
         </div>

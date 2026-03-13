@@ -5,13 +5,24 @@ import { GoogleAuthProvider, signInWithPopup, signOut, User } from 'firebase/aut
 import { ShieldAlert, Power, Trophy, Users, Award, LogOut, Table2, BarChart3 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, LabelList } from 'recharts';
 
-const AUTHORIZED_EMAILS = ['chrisdias.216@gmail.com', 'danielfernandes7484@gmail.com','tracy@rosarycollege.ac.in','qmevin@gmail.com'];
+const AUTHORIZED_EMAILS = [
+  'chrisdias.216@gmail.com', 
+  'danielfernandes7484@gmail.com',
+  'tracy@rosarycollege.ac.in',
+  'qmevin@gmail.com'
+];
 
 export default function AdminHQ() {
   const [user, setUser] = useState<User | null>(null);
   const [displayState, setDisplayState] = useState({
-    showVoting: false, revealPeersAward: false, revealRunnerUp: false, revealWinner: false,
-    winnerName: '', runnerUpName: '', peersAwardName: '',
+    showVoting: false, 
+    revealPeersAward: false, 
+    revealRunnerUp: false, 
+    revealWinner: false,
+    teamLeadersOnly: false, // NEW: Team Leaders Only Voting Switch
+    winnerName: '', 
+    runnerUpName: '', 
+    peersAwardName: '',
   });
 
   // Data states for Live Sheet and Graph
@@ -123,6 +134,20 @@ export default function AdminHQ() {
               </button>
             </div>
 
+            {/* NEW TEAM LEADERS ONLY SWITCH */}
+            <div className="bg-neutral-900 border border-neutral-800 p-5 rounded-2xl flex justify-between items-center">
+              <div>
+                <h3 className="font-bold">Team Leaders Only</h3>
+                <p className="text-xs text-gray-500">Only Member 1 from the CSV can vote</p>
+              </div>
+              <button 
+                onClick={() => updateSettings({ teamLeadersOnly: !displayState.teamLeadersOnly })} 
+                className={`w-14 h-8 rounded-full relative ${displayState.teamLeadersOnly ? 'bg-cyan-500' : 'bg-neutral-700'}`}
+              >
+                <div className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full transition-transform ${displayState.teamLeadersOnly ? 'translate-x-6' : ''}`} />
+              </button>
+            </div>
+
             <div className="bg-neutral-900 border border-neutral-800 p-5 rounded-2xl flex justify-between items-center">
               <div><h3 className="font-bold">Reveal Peers Award</h3><p className="text-xs text-gray-500">Trigger big screen animation</p></div>
               <button onClick={() => updateSettings({ revealPeersAward: !displayState.revealPeersAward })} className={`px-4 py-2 rounded-lg font-bold text-sm ${displayState.revealPeersAward ? 'bg-red-500' : 'bg-purple-600'}`}>{displayState.revealPeersAward ? 'HIDE' : 'REVEAL'}</button>
@@ -175,6 +200,7 @@ export default function AdminHQ() {
                     {chartData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={index === 0 ? '#ec4899' : '#8b5cf6'} />
                     ))}
+                    {/* THIS MAKES THE NUMBERS PERMANENTLY VISIBLE */}
                     <LabelList dataKey="votes" position="right" fill="#9ca3af" fontSize={14} fontWeight="bold" />
                   </Bar>
                 </BarChart>

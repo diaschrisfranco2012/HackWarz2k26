@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Spline from '@splinetool/react-spline';
 import { motion, useScroll, useTransform, AnimatePresence } from 'motion/react';
-import { Link } from 'react-router-dom'; // <-- NEW: Added Link import for routing
+import { Link } from 'react-router-dom'; 
 import { 
   Calendar, Trophy, Users, Zap, Code, Clock, 
   MapPin, Download, ChevronRight, Award, Rocket, PhoneCall
@@ -9,7 +9,7 @@ import {
 import { CountdownTimer } from '../components/CountdownTimer';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 
-export default function Home() { // <-- Changed from App to Home for routing
+export default function Home() { 
   const containerRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
   
